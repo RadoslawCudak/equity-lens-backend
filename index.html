@@ -2,9 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Equity-Lens</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equity Lens - Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; color: #333; }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background-color: #0078d4; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #005a9e; }
+        pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; }
+    </style>
 </head>
 <body>
-    <h1>Equity-Lens Project Under Construction</h1>
+
+<div class="container">
+    <h1>Equity Lens Backend Test</h1>
+    <p>Click the button below to fetch test data from Azure Functions (Cosmos DB):</p>
+    <button id="fetch-btn">Fetch Stock Data</button>
+    
+    <h3>API Response:</h3>
+    <pre id="output">Awaiting click...</pre>
+</div>
+
+<script>
+    document.getElementById('fetch-btn').addEventListener('click', () => {
+        const output = document.getElementById('output');
+        output.textContent = 'Fetching data...';
+
+        // REPLACE THE URL BELOW WITH YOUR ACTUAL PRODUCTION BACKEND URL
+        const BACKEND_URL = 'https://func-equitylens-backend-prod.azurewebsites.net/api/stock-test';
+
+        fetch(BACKEND_URL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                output.textContent = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                output.textContent = `Connection error: ${error.message}\nPlease verify that CORS is correctly configured in your Azure Function App.`;
+                console.error(error);
+            });
+    });
+</script>
+
 </body>
 </html>
