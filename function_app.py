@@ -76,3 +76,5 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
             status_code=500,
             mimetype="application/json"
         )
+    
+###123123
