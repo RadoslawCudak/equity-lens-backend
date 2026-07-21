@@ -8,6 +8,7 @@ on:
       - 'function_app.py'
       - 'requirements.txt'
       - '.github/workflows/deploy-backend.yml'
+      - 'backend/**'   # Trigger workflow only when files in the 'backend' directory change
 
 jobs:
   build-and-deploy:
