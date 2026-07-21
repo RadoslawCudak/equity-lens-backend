@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equity Lens - Connection Test</title>
+    <title>Equity Lens - Live GPW Stock Test</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; color: #333; }
         .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 15px; display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
         button { background-color: #0078d4; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background-color: #005a9e; }
         pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; }
@@ -15,21 +17,26 @@
 <body>
 
 <div class="container">
-    <h1>Equity Lens Backend Test V2</h1>
-    <p>Click the button below to fetch test data from Azure Functions (Cosmos DB):</p>
-    <button id="fetch-btn">Fetch Stock Data</button>
+    <h1>Equity Lens - Live Stock Data V3</h1>
+    <p>Wpisz ticker spółki (np. <strong>PKN.WA</strong> dla Orlenu, <strong>CDR.WA</strong> dla CD Projekt, <strong>MSFT</strong> dla Microsoftu):</p>
     
-    <h3>API Response:</h3>
-    <pre id="output">Awaiting click...</pre>
+    <div class="input-group">
+        <input type="text" id="symbol-input" value="PKN.WA" placeholder="e.g. PKN.WA">
+        <button id="fetch-btn">Fetch Data</button>
+    </div>
+
+    <h3>API Response (Cosmos DB & Yahoo Finance):</h3>
+    <pre id="output">Awaiting input...</pre>
 </div>
 
 <script>
     document.getElementById('fetch-btn').addEventListener('click', () => {
         const output = document.getElementById('output');
-        output.textContent = 'Fetching data...';
+        const symbol = document.getElementById('symbol-input').value.trim() || 'PKN.WA';
+        
+        output.textContent = `Fetching live data for ${symbol}...`;
 
-        // REPLACE THE URL BELOW WITH YOUR ACTUAL PRODUCTION BACKEND URL
-        const BACKEND_URL = 'https://func-equitylens-backend-prod-cph0efczgjdkbdaz.centralus-01.azurewebsites.net/api/stock-test';
+        const BACKEND_URL = `https://func-equitylens-backend-prod-cph0efczgjdkbdaz.centralus-01.azurewebsites.net/api/stock-test?symbol=${encodeURIComponent(symbol)}`;
 
         fetch(BACKEND_URL)
             .then(response => {
@@ -42,8 +49,7 @@
                 output.textContent = JSON.stringify(data, null, 2);
             })
             .catch(error => {
-                output.textContent = `Connection error: ${error.message}\nPlease verify that CORS is correctly configured in your Azure Function App.`;
-                console.error(error);
+                output.textContent = `Error fetching data: ${error.message}`;
             });
     });
 </script>
