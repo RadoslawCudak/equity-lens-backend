@@ -1,57 +1,134 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Equity Lens - Live GPW Stock Test</title>
+    <title>Equity Lens - All Stock Data</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; color: #333; }
-        .container { max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .input-group { margin-bottom: 15px; display: flex; gap: 10px; }
-        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        button { background-color: #0078d4; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 30px; background-color: #f8f9fa; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #1F4E78; margin-bottom: 20px; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input[type="text"] { flex: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 12px 25px; font-size: 16px; background-color: #0078d4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         button:hover { background-color: #005a9e; }
-        pre { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        .filter-box { margin-bottom: 15px; display: none; }
+        .filter-box input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: #2F5597; color: white; }
+        tr:nth-child(even) { background-color: #f2f5f9; }
+        .key-column { font-weight: bold; color: #1F4E78; width: 35%; word-break: break-all; }
+        .value-column { word-break: break-all; }
+        .error { color: #d9534f; font-weight: bold; margin-top: 15px; }
+        .loading { font-style: italic; color: #666; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Equity Lens - Live Stock Data V3</h1>
-    <p>Wpisz ticker spółki (np. <strong>PKN.WA</strong> dla Orlenu, <strong>CDR.WA</strong> dla CD Projekt, <strong>MSFT</strong> dla Microsoftu):</p>
+    <h1>Equity Lens — Dane Spółki</h1>
+    <p>Wpisz ticker spółki (np. <strong>PKN.WA</strong>, <strong>CDR.WA</strong>, <strong>MSFT</strong>, <strong>AAPL</strong>):</p>
     
-    <div class="input-group">
-        <input type="text" id="symbol-input" value="PKN.WA" placeholder="e.g. PKN.WA">
-        <button id="fetch-btn">Fetch Data</button>
+    <div class="search-box">
+        <input type="text" id="symbolInput" placeholder="np. PKN.WA" value="PKN.WA">
+        <button onclick="fetchData()">Pobierz Wszystkie Dane</button>
     </div>
 
-    <h3>API Response (Cosmos DB & Yahoo Finance):</h3>
-    <pre id="output">Awaiting input...</pre>
+    <div id="statusMessage"></div>
+
+    <div class="filter-box" id="filterContainer">
+        <input type="text" id="filterInput" onkeyup="filterTable()" placeholder="🔍 Filtruj parametry (np. price, marketCap, margin)...">
+    </div>
+
+    <table id="dataTable" style="display: none;">
+        <thead>
+            <tr>
+                <th>Parametr (Klucz)</th>
+                <th>Wartość</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
 </div>
 
 <script>
-    document.getElementById('fetch-btn').addEventListener('click', () => {
-        const output = document.getElementById('output');
-        const symbol = document.getElementById('symbol-input').value.trim() || 'PKN.WA';
-        
-        output.textContent = `Fetching live data for ${symbol}...`;
+    // Zmieniaj adres na URL swojej Azure Function App na produkcji
+    const BACKEND_URL = "https://func-equitylens-backend-prod.azurewebsites.net/api/get_stock_data";
 
-        const BACKEND_URL = `https://func-equitylens-backend-prod-cph0efczgjdkbdaz.centralus-01.azurewebsites.net/api/stock-test?symbol=${encodeURIComponent(symbol)}`;
+    async function fetchData() {
+        const symbol = document.getElementById('symbolInput').value.trim();
+        const statusDiv = document.getElementById('statusMessage');
+        const table = document.getElementById('dataTable');
+        const tableBody = document.getElementById('tableBody');
+        const filterContainer = document.getElementById('filterContainer');
 
-        fetch(BACKEND_URL)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                output.textContent = JSON.stringify(data, null, 2);
-            })
-            .catch(error => {
-                output.textContent = `Error fetching data: ${error.message}`;
-            });
-    });
+        if (!symbol) {
+            statusDiv.innerHTML = '<p class="error">Proszę podać symbol spółki!</p>';
+            return;
+        }
+
+        statusDiv.innerHTML = '<p class="loading">Pobieranie danych z Yahoo Finance & Cosmos DB...</p>';
+        table.style.display = 'none';
+        filterContainer.style.display = 'none';
+        tableBody.innerHTML = '';
+
+        try {
+            const response = await fetch(`${BACKEND_URL}?symbol=${encodeURIComponent(symbol)}`);
+            
+            if (!response.ok) {
+                throw new Error(`Błąd serwera: HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            const data = result.data;
+
+            if (!data || Object.keys(data).length === 0) {
+                statusDiv.innerHTML = '<p class="error">Brak danych dla podanego symbolu.</p>';
+                return;
+            }
+
+            statusDiv.innerHTML = `<p style="color: green; font-weight: bold;">Załadowano ${Object.keys(data).length} parametrów dla ${symbol.toUpperCase()}!</p>`;
+            
+            // Wypełnianie tabeli
+            for (const [key, value] of Object.entries(data)) {
+                const row = document.createElement('tr');
+                
+                const cellKey = document.createElement('td');
+                cellKey.className = 'key-column';
+                cellKey.textContent = key;
+
+                const cellValue = document.createElement('td');
+                cellValue.className = 'value-column';
+                cellValue.textContent = typeof value === 'object' ? JSON.stringify(value) : value;
+
+                row.appendChild(cellKey);
+                row.appendChild(cellValue);
+                tableBody.appendChild(row);
+            }
+
+            table.style.display = 'table';
+            filterContainer.style.display = 'block';
+
+        } catch (err) {
+            statusDiv.innerHTML = `<p class="error">Błąd podczas pobierania danych: ${err.message}</p>`;
+        }
+    }
+
+    function filterTable() {
+        const filter = document.getElementById('filterInput').value.toLowerCase();
+        const rows = document.getElementById('tableBody').getElementsByTagName('tr');
+
+        for (let row of rows) {
+            const keyText = row.getElementsByTagName('td')[0].textContent.toLowerCase();
+            const valText = row.getElementsByTagName('td')[1].textContent.toLowerCase();
+            if (keyText.includes(filter) || valText.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        }
+    }
 </script>
 
 </body>
