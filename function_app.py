@@ -9,8 +9,8 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 
 COSMOS_ENDPOINT = os.environ.get("COSMOS_ENDPOINT")
 COSMOS_KEY = os.environ.get("COSMOS_KEY")
-DATABASE_NAME = "EquityLensDB"
-CONTAINER_NAME = "Stocks"
+DATABASE_NAME = "db-equitylens"
+CONTAINER_NAME = "financial-data"
 
 def get_cosmos_container():
     if not COSMOS_ENDPOINT or not COSMOS_KEY:
