@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'frontend/**'  # Trigger workflow only when files in the 'frontend' directory change
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
@@ -26,10 +28,10 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.SWA_TOKEN }}
           action: "upload"
-          app_location: "/"
+          app_location: "equity-lens-frontend"
           api_location: ""
-          output_location: ""
-          skip_app_build: true
+          output_location: "dist"
+          
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
