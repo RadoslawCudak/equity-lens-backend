@@ -17,10 +17,17 @@ export default function StockChart({ data }) {
     );
   }
 
-  // Wymuszenie wyznaczenia zakreślonych granic dla osi Y, by linia ładnie wypełniała wykres
-  const minPrice = Math.min(...data.map(d => d.close));
-  const maxPrice = Math.max(...data.map(d => d.close));
-  const padding = (maxPrice - minPrice) * 0.05;
+  // Upewniamy się, że cena to liczba float oraz formatujemy obiekt pod wykres
+  const formattedData = data.map(d => ({
+    ...d,
+    price: Number(d.price)
+  }));
+
+  // Poprawione wyznaczanie min/max z użyciem właściwego klucza 'price'
+  const prices = formattedData.map(d => d.price).filter(p => !isNaN(p));
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+  const maxPrice = prices.length ? Math.max(...prices) : 100;
+  const padding = (maxPrice - minPrice) * 0.05 || 1;
 
   return (
     <div style={{
@@ -31,12 +38,12 @@ export default function StockChart({ data }) {
       border: '1px solid #1e293b'
     }}>
       <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#f8fafc', marginBottom: '16px' }}>
-        Historia cenowa (Ostatnie 3 miesiące)
+        Historia cenowa (Ostatnie 1-3 miesiące)
       </h3>
       
       <div style={{ width: '100%', height: 300 }}>
-        <ResponsiveContainer>
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={formattedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="colorClose" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#34d399" stopOpacity={0.4}/>
@@ -61,14 +68,13 @@ export default function StockChart({ data }) {
             <Tooltip 
               contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '6px', color: '#f8fafc' }}
               labelStyle={{ color: '#34d399', fontWeight: 'bold' }}
-              formatter={(value) => [`${value} PLN`, 'Cena zamknięcia']}
+              formatter={(value) => [`${value} PLN`, 'Cena']}
             />
             <Area 
               type="monotone" 
-              dataKey="close" 
+              dataKey="price" 
               stroke="#34d399" 
               strokeWidth={2}
-              fillOpacity={1} 
               fill="url(#colorClose)" 
             />
           </AreaChart>
