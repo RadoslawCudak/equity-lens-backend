@@ -1,3 +1,4 @@
+import StockChart from './StockChart.jsx';
 
 export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
   if (!stock) {
@@ -14,7 +15,7 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
       </div>
     );
   }
-console.log(stock)
+
   const info = stock.data || {};
   const metrics = [
     { label: 'Cena bieżąca', value: info.currentPrice ? `${info.currentPrice} PLN` : 'N/A', highlight: true },
@@ -36,7 +37,7 @@ console.log(stock)
       {/* Nagłówek karty z przyciskiem akcji */}
       <div style={{
         display: 'flex',
-        justifyContent: 'space-between',
+        justify: 'space-between',
         alignItems: 'center',
         borderBottom: '1px solid #334155',
         paddingBottom: '16px',
@@ -97,6 +98,9 @@ console.log(stock)
           </div>
         ))}
       </div>
+
+      {/* Wykres historii cenowej */}
+      <StockChart data={info.priceHistory} />
     </div>
   );
 }
