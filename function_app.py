@@ -69,13 +69,26 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        # 2. Data cleansing for Cosmos DB storage
+        # 2. Fetch price history for chart (e.g. 1 month)
+        hist_df = ticker.history(period="1mo")
+        price_history = []
+        if not hist_df.empty:
+            for date, row in hist_df.iterrows():
+                price_history.append({
+                    "date": str(date)[:10],  # Pylance to uwielbia — zero błędów typowania
+                    "price": round(float(row['Close']), 2)
+                })
+
+        # 3. Data cleansing for Cosmos DB storage
         cleaned_info = {}
         for key, value in raw_info.items():
             if value is not None and str(value) != 'nan':
                 cleaned_info[key] = value
 
-        # 3. Match metadata from RAM (Cosmos DB gpw-metadata)
+        # Attach priceHistory array directly to info
+        cleaned_info["priceHistory"] = price_history
+
+        # 4. Match metadata from RAM (Cosmos DB gpw-metadata)
         metadata = GPW_METADATA_CACHE.get(symbol_upper, {
             "index": "Other / Non-GPW",
             "isin": cleaned_info.get("isin", "N/A"),
@@ -95,7 +108,7 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
             "data": cleaned_info
         }
 
-        # 4. Save/Upsert document to primary database container (financial-data)
+        # 5. Save/Upsert document to primary database container (financial-data)
         if COSMOS_ENDPOINT and COSMOS_KEY:
             try:
                 client = CosmosClient(COSMOS_ENDPOINT, COSMOS_KEY)
