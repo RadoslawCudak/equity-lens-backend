@@ -70,7 +70,7 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
             )
 
         # 2. Fetch price history for chart (e.g. 1 month)
-        hist_df = ticker.history(period="1mo")
+        hist_df = ticker.history(period="1y")
         price_history = []
         if not hist_df.empty:
             for date, row in hist_df.iterrows():
