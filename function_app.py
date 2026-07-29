@@ -1,6 +1,7 @@
 import azure.functions as func
 import logging
 import json
+import math
 import yfinance as yf
 from azure.cosmos import CosmosClient
 import os
@@ -69,23 +70,34 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        # 2. Fetch price history for chart (e.g. 1 month)
+        # 2. Fetch price history for chart (1 year) & strict NaN filtering
         hist_df = ticker.history(period="1y")
         price_history = []
         if not hist_df.empty:
             for date, row in hist_df.iterrows():
-                price_history.append({
-                    "date": str(date)[:10],  # Pylance to uwielbia — zero błędów typowania
-                    "price": round(float(row['Close']), 2)
-                })
+                close_val = row.get('Close')
+                # Odrzucanie wartości None, 'nan' oraz float NaN
+                if close_val is not None and str(close_val) != 'nan':
+                    try:
+                        val_float = float(close_val)
+                        if not math.isnan(val_float):
+                            price_history.append({
+                                "date": str(date)[:10],
+                                "price": round(val_float, 2)
+                            })
+                    except (ValueError, TypeError):
+                        continue
 
-        # 3. Data cleansing for Cosmos DB storage
+        # 3. Data cleansing for Cosmos DB storage (Strict NaN filtration)
         cleaned_info = {}
         for key, value in raw_info.items():
-            if value is not None and str(value) != 'nan':
-                cleaned_info[key] = value
+            if value is None or str(value) == 'nan':
+                continue
+            if isinstance(value, float) and math.isnan(value):
+                continue
+            cleaned_info[key] = value
 
-        # Attach priceHistory array directly to info
+        # Attach clean priceHistory array
         cleaned_info["priceHistory"] = price_history
 
         # 4. Match metadata from RAM (Cosmos DB gpw-metadata)
