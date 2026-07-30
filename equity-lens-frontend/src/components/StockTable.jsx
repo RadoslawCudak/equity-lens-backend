@@ -15,7 +15,8 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
   };
 
   const columnDefs = [
-    { field: 'index', headerName: 'Index', sortable: true, filter: true, width: 110 },
+    // --- Podstawowe informacje ---
+    { field: 'index', headerName: 'Indeks', sortable: true, filter: true, width: 110 },
     { field: 'symbol', headerName: 'Ticker', sortable: true, filter: true, width: 120 },
     { 
       field: 'data.official_name', 
@@ -23,26 +24,29 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       sortable: true, 
       filter: true,
       valueGetter: params => params.data?.data?.official_name || params.data?.symbol || 'N/A',
-      flex: 1 
+      width: 200
     },
     { 
       field: 'data.currentPrice', 
-      headerName: 'currentPrice', 
+      headerName: 'Cena bieżąca', 
       sortable: true, 
+      filter: true,
       valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
       width: 140
     },
     { 
       field: 'data.previousClose', 
-      headerName: 'previousClose', 
+      headerName: 'Cena zamkn.', 
       sortable: true, 
+      filter: true,
       valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
       width: 140
     },
     { 
-      headerName: 'Różnica', 
+      headerName: 'Różnica (%)', 
       sortable: true,
-      width: 120,
+      filter: true,
+      width: 130,
       valueGetter: params => {
         const current = params.data?.data?.currentPrice;
         const prev = params.data?.data?.previousClose;
@@ -56,24 +60,141 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
         return null;
       }
     },
+
+    // --- Nowe wskaźniki cenowe i wycenowe ---
+    { 
+      field: 'data.trailingEps', 
+      headerName: 'EPS (Zysk/akcję)', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
+      width: 160
+    },
+    { 
+      field: 'data.bookValue', 
+      headerName: 'Wartość księgowa/akcję', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
+      width: 190
+    },
+    { 
+      field: 'data.enterpriseToEbitda', 
+      headerName: 'EV / EBITDA', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? formatNumber(params.value) : 'N/A',
+      width: 130
+    },
+
+    // --- Nowe marże i rentowność ---
+    { 
+      field: 'data.ebitdaMargins', 
+      headerName: 'Marża EBITDA', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
+      width: 140
+    },
+    { 
+      field: 'data.returnOnAssets', 
+      headerName: 'ROA', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
+      width: 110
+    },
+    { 
+      field: 'data.returnOnEquity', 
+      headerName: 'ROE', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
+      width: 110
+    },
+    { 
+      field: 'data.debtToEquity', 
+      headerName: 'Dług / Kapitał', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)}%` : 'N/A',
+      width: 140
+    },
+
+    // --- Nowe dane o akcjach i dywidendach ---
+    { 
+      field: 'data.sharesPercentSharesOut', 
+      headerName: 'Free Float (%)', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
+      width: 140
+    },
+    { 
+      field: 'data.dividendRate', 
+      headerName: 'Dywidenda/akcję', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
+      width: 160
+    },
+
+    // --- Nowe ceny docelowe (Target Prices) ---
+    { 
+      field: 'data.targetLowPrice', 
+      headerName: 'Target Min.', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
+      width: 130
+    },
+    { 
+      field: 'data.targetMeanPrice', 
+      headerName: 'Target Śr.', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
+      width: 130
+    },
+    { 
+      field: 'data.targetMedianPrice', 
+      headerName: 'Target Mediana', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
+      width: 150
+    },
+    { 
+      field: 'data.targetHighPrice', 
+      headerName: 'Target Maks.', 
+      sortable: true, 
+      filter: true,
+      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
+      width: 130
+    },
+
+    // --- Wolumeny i obroty ---
     { 
       field: 'data.volume', 
-      headerName: 'volume', 
+      headerName: 'Wolumen', 
       sortable: true, 
+      filter: true,
       valueFormatter: params => params.value ? formatNumber(params.value, 0) : 'N/A',
       width: 130
     },
     { 
       field: 'data.averageDailyVolume10Day', 
-      headerName: 'averageDailyVolume10Day', 
+      headerName: 'Średnia 10-dniowa wolumenu', 
       sortable: true, 
+      filter: true,
       valueFormatter: params => params.value ? formatNumber(params.value, 0) : 'N/A',
       width: 220
     },
     { 
-      headerName: '% vs 10 days', 
+      headerName: '% vs 10d wolumenu', 
       sortable: true,
-      width: 140,
+      filter: true,
+      width: 160,
       valueGetter: params => {
         const vol = params.data?.data?.volume;
         const avgVol = params.data?.data?.averageDailyVolume10Day;
@@ -82,12 +203,15 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       },
       valueFormatter: params => params.value !== null ? `${formatNumber(params.value, 0)}%` : 'N/A'
     },
+
+    // --- Akcja usunięcia ze stanowiska ---
     {
       headerName: 'Akcje',
       field: 'symbol',
       width: 90,
       sortable: false,
       filter: false,
+      pinned: 'right', // Przycisk usuwania przypięty do prawej krawędzi
       cellRenderer: (params) => (
         <button
           onClick={() => onRemoveFromTable(params.value)}
