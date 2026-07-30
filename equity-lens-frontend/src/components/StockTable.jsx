@@ -1,7 +1,10 @@
+
 import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry, ClientSideRowModelModule } from 'ag-grid-community';
 
+// CSS dla AG Grid i motywu ciemnego (To naprawia biały prostokąt!)
 import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
@@ -15,7 +18,6 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
   };
 
   const columnDefs = [
-    // --- Podstawowe informacje ---
     { field: 'index', headerName: 'Indeks', sortable: true, filter: true, width: 110 },
     { field: 'symbol', headerName: 'Ticker', sortable: true, filter: true, width: 120 },
     { 
@@ -60,8 +62,6 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
         return null;
       }
     },
-
-    // --- Nowe wskaźniki cenowe i wycenowe ---
     { 
       field: 'data.trailingEps', 
       headerName: 'EPS (Zysk/akcję)', 
@@ -86,8 +86,6 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       valueFormatter: params => params.value ? formatNumber(params.value) : 'N/A',
       width: 130
     },
-
-    // --- Nowe marże i rentowność ---
     { 
       field: 'data.ebitdaMargins', 
       headerName: 'Marża EBITDA', 
@@ -120,8 +118,6 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       valueFormatter: params => params.value ? `${formatNumber(params.value)}%` : 'N/A',
       width: 140
     },
-
-    // --- Nowe dane o akcjach i dywidendach ---
     { 
       field: 'data.sharesPercentSharesOut', 
       headerName: 'Free Float (%)', 
@@ -138,8 +134,6 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
       width: 160
     },
-
-    // --- Nowe ceny docelowe (Target Prices) ---
     { 
       field: 'data.targetLowPrice', 
       headerName: 'Target Min.', 
@@ -172,8 +166,6 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
       width: 130
     },
-
-    // --- Wolumeny i obroty ---
     { 
       field: 'data.volume', 
       headerName: 'Wolumen', 
@@ -184,11 +176,11 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
     },
     { 
       field: 'data.averageDailyVolume10Day', 
-      headerName: 'Średnia 10-dniowa wolumenu', 
+      headerName: 'Średnia 10d wolumenu', 
       sortable: true, 
       filter: true,
       valueFormatter: params => params.value ? formatNumber(params.value, 0) : 'N/A',
-      width: 220
+      width: 200
     },
     { 
       headerName: '% vs 10d wolumenu', 
@@ -203,15 +195,13 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       },
       valueFormatter: params => params.value !== null ? `${formatNumber(params.value, 0)}%` : 'N/A'
     },
-
-    // --- Akcja usunięcia ze stanowiska ---
     {
       headerName: 'Akcje',
       field: 'symbol',
       width: 90,
       sortable: false,
       filter: false,
-      pinned: 'right', // Przycisk usuwania przypięty do prawej krawędzi
+      pinned: 'right',
       cellRenderer: (params) => (
         <button
           onClick={() => onRemoveFromTable(params.value)}
@@ -249,9 +239,10 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
 
   return (
     <div 
-      className="custom-dark-grid"
+      className="ag-theme-alpine-dark" 
       style={{ 
-        height: '500px', 
+        height: 'calc(100vh - 220px)', 
+        minHeight: '500px',
         width: '100%', 
         borderRadius: '8px', 
         overflow: 'hidden',
