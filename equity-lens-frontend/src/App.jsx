@@ -53,9 +53,25 @@ export default function App() {
     : false;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', color: '#f8fafc', padding: '24px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      width: '100vw', 
+      maxWidth: '100%',
+      backgroundColor: '#0f172a', 
+      color: '#f8fafc', 
+      padding: '24px 32px',
+      boxSizing: 'border-box'
+    }}>
       {/* Header & Tabs */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '16px' }}>
+      <header style={{ 
+        display: 'flex', 
+        justify: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: '24px', 
+        borderBottom: '1px solid #1e293b', 
+        paddingBottom: '16px',
+        width: '100%'
+      }}>
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#34d399', margin: 0 }}>Equity Lens</h1>
         
         <div style={{ display: 'flex', backgroundColor: '#1e293b', padding: '4px', borderRadius: '8px', gap: '8px' }}>
@@ -70,7 +86,9 @@ export default function App() {
               border: 'none',
               cursor: 'pointer',
               backgroundColor: activeTab === 'single' ? '#059669' : 'transparent',
-              color: activeTab === 'single' ? '#fff' : '#94a3b8'
+              color: activeTab === 'single' ? '#fff' : '#94a3b8',
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s'
             }}
           >
             <LayoutGrid size={18} /> Karta Spółki
@@ -86,7 +104,9 @@ export default function App() {
               border: 'none',
               cursor: 'pointer',
               backgroundColor: activeTab === 'table' ? '#059669' : 'transparent',
-              color: activeTab === 'table' ? '#fff' : '#94a3b8'
+              color: activeTab === 'table' ? '#fff' : '#94a3b8',
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s'
             }}
           >
             <Table size={18} /> Tabela Porównawcza ({stocks.length})
@@ -95,10 +115,12 @@ export default function App() {
       </header>
 
       {/* Global Search Bar */}
-      <StockSearch onStockFetched={handleStockFetched} />
+      <div style={{ width: '100%', marginBottom: '24px' }}>
+        <StockSearch onStockFetched={handleStockFetched} />
+      </div>
 
       {/* Content area */}
-      <main>
+      <main style={{ width: '100%' }}>
         {activeTab === 'single' ? (
           <StockCard 
             stock={selectedStock} 
@@ -106,10 +128,12 @@ export default function App() {
             isAlreadyInTable={isAlreadyInTable}
           />
         ) : (
-          <StockTable 
-            stocks={stocks} 
-            onRemoveFromTable={handleRemoveFromTable}
-          />
+          <div style={{ width: '100%', overflowX: 'auto' }}>
+            <StockTable 
+              stocks={stocks} 
+              onRemoveFromTable={handleRemoveFromTable}
+            />
+          </div>
         )}
       </main>
     </div>
