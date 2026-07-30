@@ -70,9 +70,18 @@ export default function App() {
         marginBottom: '24px', 
         borderBottom: '1px solid #1e293b', 
         paddingBottom: '16px',
-        width: '100%'
+        width: '100%',
+        gap: '24px'
       }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#34d399', margin: 0 }}>Equity Lens</h1>
+        <h1 style={{ 
+          fontSize: '24px', 
+          fontWeight: 'bold', 
+          color: '#34d399', 
+          margin: 0,
+          marginRight: '16px'
+        }}>
+          Equity Lens
+        </h1>
         
         <div style={{ display: 'flex', backgroundColor: '#1e293b', padding: '4px', borderRadius: '8px', gap: '8px' }}>
           <button
