@@ -48,15 +48,23 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
     if not GPW_METADATA_CACHE:
         load_gpw_metadata_cache()
 
-    symbol = req.params.get('symbol')
-    if not symbol:
+    # Flexible parameter extraction: Accept 'symbol' or 'ticker' from query string or request body
+    symbol_param = req.params.get('symbol') or req.params.get('ticker')
+    if not symbol_param:
+        try:
+            req_body = req.get_json()
+            symbol_param = req_body.get('symbol') or req_body.get('ticker')
+        except Exception:
+            pass
+
+    if not symbol_param:
         return func.HttpResponse(
-            json.dumps({"error": "Please provide a 'symbol' query parameter"}),
+            json.dumps({"error": "Please provide a 'symbol' or 'ticker' query parameter"}),
             status_code=400,
             mimetype="application/json"
         )
 
-    symbol_upper = symbol.upper()
+    symbol_upper = symbol_param.upper()
 
     try:
         # 1. Fetch data from Yahoo Finance
@@ -70,13 +78,13 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json"
             )
 
-        # 2. Fetch price history for chart (1 year) & strict NaN filtering
+        # 2. Fetch price history for chart (3 years) with strict NaN filtering
         hist_df = ticker.history(period="3y")
         price_history = []
         if not hist_df.empty:
             for date, row in hist_df.iterrows():
                 close_val = row.get('Close')
-                # Odrzucanie wartości None, 'nan' oraz float NaN
+                # Filter out None, 'nan' string, and float NaN values
                 if close_val is not None and str(close_val) != 'nan':
                     try:
                         val_float = float(close_val)
@@ -88,7 +96,7 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
                     except (ValueError, TypeError):
                         continue
 
-        # 3. Data cleansing for Cosmos DB storage (Strict NaN filtration)
+        # 3. Data cleansing for storage and serialization (Strict NaN filtration)
         cleaned_info = {}
         for key, value in raw_info.items():
             if value is None or str(value) == 'nan':
@@ -97,7 +105,15 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
                 continue
             cleaned_info[key] = value
 
-        # Attach clean priceHistory array
+        # Map key metrics for frontend consumption (Targets, Dividends, Free Float)
+        cleaned_info["targetMin"] = raw_info.get("targetMinPrice")
+        cleaned_info["targetMean"] = raw_info.get("targetMeanPrice")
+        cleaned_info["targetMedian"] = raw_info.get("targetMedianPrice")
+        cleaned_info["targetMax"] = raw_info.get("targetHighPrice")
+        cleaned_info["dividendRate"] = raw_info.get("dividendRate") or raw_info.get("dividendPerShare")
+        cleaned_info["freeFloat"] = raw_info.get("floatShares") or raw_info.get("freeFloat")
+
+        # Attach cleaned priceHistory array
         cleaned_info["priceHistory"] = price_history
 
         # 4. Match metadata from RAM (Cosmos DB gpw-metadata)
@@ -120,7 +136,7 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
             "data": cleaned_info
         }
 
-        # 5. Save/Upsert document to primary database container (financial-data)
+        # 5. Upsert document to primary database container (financial-data)
         if COSMOS_ENDPOINT and COSMOS_KEY:
             try:
                 client = CosmosClient(COSMOS_ENDPOINT, COSMOS_KEY)

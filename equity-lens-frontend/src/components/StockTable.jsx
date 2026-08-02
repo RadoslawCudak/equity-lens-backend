@@ -196,30 +196,31 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
       valueFormatter: params => params.value !== null ? `${formatNumber(params.value, 0)}%` : 'N/A'
     },
     {
-      headerName: 'Akcje',
-      field: 'symbol',
-      width: 90,
-      sortable: false,
-      filter: false,
-      pinned: 'right',
-      cellRenderer: (params) => (
-        <button
-          onClick={() => onRemoveFromTable(params.value)}
-          style={{
-            backgroundColor: '#ef4444',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '4px',
-            padding: '4px 8px',
-            cursor: 'pointer',
-            fontSize: '12px',
-            fontWeight: 'bold'
-          }}
-        >
-          Usuń
-        </button>
-      )
-    }
+  headerName: 'Akcje',
+  field: 'actions',
+  pinned: 'right',
+  width: 100,
+  /* Te dwa wiersze definiują tło bez względu na motyw AG Grid: */
+  headerStyle: { backgroundColor: '#0f172a', color: '#38bdf8' },
+  cellStyle: { backgroundColor: '#1e293b' },
+  cellRenderer: (params) => (
+    <button
+      onClick={() => onRemoveFromTable(params.data.symbol)}
+      style={{
+        padding: '4px 8px',
+        backgroundColor: '#ef4444',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        fontSize: '12px',
+        fontWeight: 'bold'
+      }}
+    >
+      Usuń
+    </button>
+  )
+}
   ];
 
   if (!stocks || stocks.length === 0) {

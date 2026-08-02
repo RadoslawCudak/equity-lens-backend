@@ -7,7 +7,6 @@ import StockTable from './components/StockTable';
 export default function App() {
   const [activeTab, setActiveTab] = useState('single');
   
-  // Wczytywanie początkowego stanu z localStorage
   const [stocks, setStocks] = useState(() => {
     const savedStocks = localStorage.getItem('equity_lens_stocks');
     return savedStocks ? JSON.parse(savedStocks) : [];
@@ -18,12 +17,10 @@ export default function App() {
     return savedSelected ? JSON.parse(savedSelected) : null;
   });
 
-  // Automatyczny zapis do localStorage przy każdej zmianie tabeli
   useEffect(() => {
     localStorage.setItem('equity_lens_stocks', JSON.stringify(stocks));
   }, [stocks]);
 
-  // Automatyczny zapis wybranej karty spółki
   useEffect(() => {
     if (selectedStock) {
       localStorage.setItem('equity_lens_selected', JSON.stringify(selectedStock));
@@ -76,7 +73,7 @@ export default function App() {
         <h1 style={{ 
           fontSize: '24px', 
           fontWeight: 'bold', 
-          color: '#34d399', 
+          color: '#38bdf8', /* Nowy cyjanowy kolor logo/napisów */
           margin: 0,
           marginRight: '16px'
         }}>
@@ -94,7 +91,7 @@ export default function App() {
               borderRadius: '6px',
               border: 'none',
               cursor: 'pointer',
-              backgroundColor: activeTab === 'single' ? '#059669' : 'transparent',
+              backgroundColor: activeTab === 'single' ? '#0284c7' : 'transparent', /* Przycisk błękitny */
               color: activeTab === 'single' ? '#fff' : '#94a3b8',
               fontWeight: 'bold',
               transition: 'background-color 0.2s'
@@ -112,7 +109,7 @@ export default function App() {
               borderRadius: '6px',
               border: 'none',
               cursor: 'pointer',
-              backgroundColor: activeTab === 'table' ? '#059669' : 'transparent',
+              backgroundColor: activeTab === 'table' ? '#0284c7' : 'transparent', /* Przycisk błękitny */
               color: activeTab === 'table' ? '#fff' : '#94a3b8',
               fontWeight: 'bold',
               transition: 'background-color 0.2s'

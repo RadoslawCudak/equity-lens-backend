@@ -1,7 +1,7 @@
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -23,10 +23,16 @@ export default function StockChart({ data }) {
     );
   }
 
-  // Wyznaczenie min i max dla osi Y z lekkim buforem
   const prices = data.map(d => d.price);
   const minPrice = Math.floor(Math.min(...prices) * 0.98);
   const maxPrice = Math.ceil(Math.max(...prices) * 1.02);
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleDateString('pl-PL', { month: 'short', year: '2-digit' });
+  };
 
   return (
     <div style={{ marginTop: '24px', width: '100%' }}>
@@ -34,18 +40,25 @@ export default function StockChart({ data }) {
         fontSize: '16px',
         fontWeight: 'bold',
         color: '#f8fafc',
-        marginBottom: '16px'
+        marginBottom: '20px'
       }}>
         Historia cenowa (Ostatnie 3 lata)
       </h3>
 
-      <div style={{ width: '100%', height: '350px' }}>
+      <div style={{ width: '100%', height: '360px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart 
+          <AreaChart 
             data={data}
-            /* Dodany prawy margines (right: 40), żeby daty nie wchodziły na oś Y */
-            margin={{ top: 10, right: 40, left: 10, bottom: 25 }}
+            margin={{ top: 10, right: 10, left: 10, bottom: 25 }}
           >
+            {/* Definicja cyjanowego gradientu */}
+            <defs>
+              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.0}/>
+              </linearGradient>
+            </defs>
+
             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
             
             <XAxis
@@ -53,20 +66,31 @@ export default function StockChart({ data }) {
               stroke="#94a3b8"
               fontSize={12}
               tickLine={false}
-              /* Obrót dat o -25 stopni daje idealny odstęp od osi Y */
-              angle={-25}
-              textAnchor="end"
-              interval="preserveStartEnd"
-              minTickGap={40}
+              tickFormatter={formatDate}
+              minTickGap={50}
+              dy={10}
             />
             
             <YAxis
+              yAxisId="left"
+              stroke="#94a3b8"
+              fontSize={12}
+              domain={[minPrice, maxPrice]}
+              orientation="left"
+              tickLine={false}
+              tickFormatter={(val) => `${val.toLocaleString('pl-PL')} PLN`}
+              dx={-5}
+            />
+
+            <YAxis
+              yAxisId="right"
               stroke="#94a3b8"
               fontSize={12}
               domain={[minPrice, maxPrice]}
               orientation="right"
               tickLine={false}
-              tickFormatter={(val) => `${val} PLN`}
+              tickFormatter={(val) => `${val.toLocaleString('pl-PL')} PLN`}
+              dx={5}
             />
 
             <Tooltip
@@ -74,21 +98,34 @@ export default function StockChart({ data }) {
                 backgroundColor: '#0f172a',
                 borderColor: '#334155',
                 borderRadius: '8px',
-                color: '#f8fafc'
+                color: '#f8fafc',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
               }}
-              labelStyle={{ color: '#34d399', fontWeight: 'bold' }}
-              formatter={(value) => [`${value} PLN`, 'Cena']}
+              labelFormatter={(label) => `Data: ${label}`}
+              formatter={(value) => [`${value.toLocaleString('pl-PL')} PLN`, 'Cena']}
             />
 
-            <Line
+            <Area
+              yAxisId="left"
               type="monotone"
               dataKey="price"
-              stroke="#34d399"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 6, fill: '#34d399' }}
+              stroke="#38bdf8" /* Błękitna linia wykresu */
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill="url(#colorPrice)"
+              activeDot={{ r: 6, fill: '#38bdf8', stroke: '#0f172a', strokeWidth: 2 }}
             />
-          </LineChart>
+
+            <Area
+              yAxisId="right"
+              type="monotone"
+              dataKey="price"
+              stroke="transparent"
+              fill="none"
+              legendType="none"
+              tooltipType="none"
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>

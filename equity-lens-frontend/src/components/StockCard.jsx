@@ -17,13 +17,39 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
   }
 
   const info = stock.data || {};
-  const metrics = [
+
+  // Helper do bezpiecznego formatowania wartości PLN
+  const formatPLN = (val) => {
+    if (val === undefined || val === null || isNaN(val)) return 'N/A';
+    return `${Number(val).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PLN`;
+  };
+
+  // Helper do procentów
+  const formatPercent = (val) => {
+    if (val === undefined || val === null || isNaN(val)) return 'N/A';
+    const num = Number(val);
+    const percentage = num < 1 && num > 0 ? num * 100 : num;
+    return `${percentage.toFixed(2)}%`;
+  };
+
+  // Główny zestaw metryk podstawowych
+  const mainMetrics = [
     { label: 'Cena bieżąca', value: info.currentPrice ? `${info.currentPrice} PLN` : 'N/A', highlight: true },
-    { label: 'Cena / Zysk (P/E)', value: info.trailingPE || 'N/A' },
-    { label: 'Cena / Wartość Księgowa (P/B)', value: info.priceToBook || 'N/A' },
-    { label: 'Stopa Dywidendy', value: info.dividendYield ? `${(info.dividendYield * 100).toFixed(2)}%` : 'N/A' },
-    { label: 'Kapitalizacja', value: info.marketCap ? `${(info.marketCap / 1e9).toFixed(2)} mld PLN` : 'N/A' },
+    { label: 'Cena / Zysk (P/E)', value: info.trailingPE ? Number(info.trailingPE).toFixed(2) : 'N/A' },
+    { label: 'Cena / Wartość Księgowa (P/B)', value: info.priceToBook ? Number(info.priceToBook).toFixed(2) : 'N/A' },
+    { label: 'Stopa Dywidendy', value: formatPercent(info.dividendYield) },
+    { label: 'Dywidenda / akcję', value: formatPLN(info.dividendRate || info.dividendPerShare) },
+    { label: 'Free Float (%)', value: formatPercent(info.freeFloat) },
+    { label: 'Kapitalizacja', value: info.marketCap ? `${(Number(info.marketCap) / 1e9).toFixed(2)} mld PLN` : 'N/A' },
     { label: 'Sektor', value: info.sector || 'N/A' },
+  ];
+
+  // Sekcja Ceny Docelowej Analityków (Targety)
+  const targetMetrics = [
+    { label: 'Target Min.', value: formatPLN(info.targetMin) },
+    { label: 'Target Śr.', value: formatPLN(info.targetMean) },
+    { label: 'Target Mediana', value: formatPLN(info.targetMedian) },
+    { label: 'Target Maks.', value: formatPLN(info.targetMax) },
   ];
 
   return (
@@ -46,7 +72,7 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
         gap: '12px'
       }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#34d399', margin: 0 }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#38bdf8', margin: 0 }}>
             {info.official_name || stock.symbol}
           </h2>
           <span style={{ fontSize: '14px', color: '#94a3b8' }}>
@@ -60,7 +86,7 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
           style={{
             padding: '10px 18px',
             borderRadius: '6px',
-            backgroundColor: isAlreadyInTable ? '#334155' : '#059669',
+            backgroundColor: isAlreadyInTable ? '#334155' : '#0284c7',
             color: isAlreadyInTable ? '#94a3b8' : '#fff',
             border: 'none',
             cursor: isAlreadyInTable ? 'not-allowed' : 'pointer',
@@ -72,13 +98,14 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
         </button>
       </div>
 
-      {/* Grid z kafelkami metryk */}
+      {/* Grid 1: Podstawowe metryki */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '16px'
+        gap: '16px',
+        marginBottom: '24px'
       }}>
-        {metrics.map((metric, idx) => (
+        {mainMetrics.map((metric, idx) => (
           <div key={idx} style={{
             backgroundColor: '#0f172a',
             padding: '16px',
@@ -91,7 +118,7 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
             <div style={{
               fontSize: metric.highlight ? '22px' : '18px',
               fontWeight: 'bold',
-              color: metric.highlight ? '#34d399' : '#f8fafc'
+              color: metric.highlight ? '#38bdf8' : '#f8fafc'
             }}>
               {metric.value}
             </div>
@@ -99,7 +126,41 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
         ))}
       </div>
 
-      {/* Wykres historii cenowej */}
+      {/* Grid 2: Ceny docelowe analityków (Targety) */}
+      <div style={{
+        backgroundColor: '#0f172a',
+        borderRadius: '8px',
+        padding: '16px',
+        border: '1px solid #334155',
+        marginBottom: '24px'
+      }}>
+        <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#38bdf8', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Ceny Docelowe Analityków (Targety)
+        </div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '12px'
+        }}>
+          {targetMetrics.map((target, idx) => (
+            <div key={idx} style={{
+              backgroundColor: '#1e293b',
+              padding: '12px 16px',
+              borderRadius: '6px',
+              border: '1px solid #334155'
+            }}>
+              <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px', textTransform: 'uppercase' }}>
+                {target.label}
+              </div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#f8fafc' }}>
+                {target.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Wykres */}
       <StockChart data={info.priceHistory} />
     </div>
   );
