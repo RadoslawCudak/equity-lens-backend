@@ -71,7 +71,7 @@ def get_stock_data(req: func.HttpRequest) -> func.HttpResponse:
             )
 
         # 2. Fetch price history for chart (1 year) & strict NaN filtering
-        hist_df = ticker.history(period="1y")
+        hist_df = ticker.history(period="3y")
         price_history = []
         if not hist_df.empty:
             for date, row in hist_df.iterrows():
