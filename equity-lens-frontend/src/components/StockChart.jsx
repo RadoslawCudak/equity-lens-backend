@@ -38,7 +38,7 @@ export default function StockChart({ data }) {
       border: '1px solid #1e293b'
     }}>
       <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#f8fafc', marginBottom: '16px' }}>
-        Historia cenowa (Ostatnie 1-3 miesiące)
+        Historia cenowa (Ostatnie 3 lata)
       </h3>
       
       <div style={{ width: '100%', height: 300 }}>
