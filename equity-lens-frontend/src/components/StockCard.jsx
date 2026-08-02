@@ -16,41 +16,39 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
     );
   }
 
-  // Obsługa pobierania danych z obiektu stock (stock.data z CosmosDB/API lub bezpośrednio stock)
+  // Odczyt pod-obiektu data z dokumentu Cosmos/Backend
   const info = stock.data || stock || {};
 
-  // Safe extraction ceny bieżącej (fallbacki z Yahoo Finance)
+  // Cena bieżąca (z priorytetem dla currentPrice / regularMarketPrice)
   const currentPrice = info.currentPrice ?? info.regularMarketPrice ?? info.previousClose ?? info.open;
 
-  // Helper do bezpiecznego formatowania wartości PLN
+  // Bezpieczne formatowanie waluty PLN
   const formatPLN = (val) => {
     if (val === undefined || val === null || isNaN(val)) return 'N/A';
     return `${Number(val).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PLN`;
   };
 
-  // Helper do procentów
+  // Bezpieczne formatowanie procentów
   const formatPercent = (val) => {
     if (val === undefined || val === null || isNaN(val)) return 'N/A';
-    const num = Number(val);
-    const percentage = num < 1 && num > 0 ? num * 100 : num;
-    return `${percentage.toFixed(2)}%`;
+    return `${Number(val).toFixed(2)}%`;
   };
 
-  // Główny zestaw metryk podstawowych (z pełnymi nazwami pól z yfinance)
+  // Główny zestaw metryk podstawowych
   const mainMetrics = [
     { label: 'Cena bieżąca', value: currentPrice ? `${currentPrice} PLN` : 'N/A', highlight: true },
     { label: 'Cena / Zysk (P/E)', value: info.trailingPE ? Number(info.trailingPE).toFixed(2) : 'N/A' },
     { label: 'Cena / Wartość Księgowa (P/B)', value: info.priceToBook ? Number(info.priceToBook).toFixed(2) : 'N/A' },
     { label: 'Stopa Dywidendy', value: formatPercent(info.dividendYield) },
-    { label: 'Dywidenda / akcję', value: formatPLN(info.dividendRate ?? info.dividendPerShare) },
-    { label: 'Free Float (%)', value: formatPercent(info.freeFloat ?? info.floatShares) },
+    { label: 'Dywidenda / akcję', value: formatPLN(info.dividendRate ?? info.lastDividendValue) },
+    { label: 'Free Float (Liczba akcji)', value: info.freeFloat ? `${(Number(info.freeFloat) / 1e6).toFixed(2)} mln` : 'N/A' },
     { label: 'Kapitalizacja', value: info.marketCap ? `${(Number(info.marketCap) / 1e9).toFixed(2)} mld PLN` : 'N/A' },
     { label: 'Sektor', value: info.sector || 'N/A' },
   ];
 
-  // Sekcja Ceny Docelowej Analityków (Targety z polami z yfinance)
+  // Sekcja Ceny Docelowej Analityków (Targety)
   const targetMetrics = [
-    { label: 'Target Min.', value: formatPLN(info.targetMin ?? info.targetMinPrice) },
+    { label: 'Target Min.', value: formatPLN(info.targetMin ?? info.targetLowPrice) },
     { label: 'Target Śr.', value: formatPLN(info.targetMean ?? info.targetMeanPrice) },
     { label: 'Target Mediana', value: formatPLN(info.targetMedian ?? info.targetMedianPrice) },
     { label: 'Target Maks.', value: formatPLN(info.targetMax ?? info.targetHighPrice) },
@@ -77,7 +75,7 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
       }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#38bdf8', margin: 0 }}>
-            {info.official_name || info.longName || info.shortName || stock.symbol}
+            {info.official_name || info.longName || stock.symbol}
           </h2>
           <span style={{ fontSize: '14px', color: '#94a3b8' }}>
             Symbol: <strong>{stock.symbol}</strong> | Indeks: <strong>{info.gpw_index || stock.index || 'GPW'}</strong>
@@ -164,7 +162,7 @@ export default function StockCard({ stock, onAddToTable, isAlreadyInTable }) {
         </div>
       </div>
 
-      {/* Wykres */}
+      {/* Wykres historyczny */}
       <StockChart data={info.priceHistory} />
     </div>
   );
