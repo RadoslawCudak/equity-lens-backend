@@ -8,13 +8,21 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('single');
   
   const [stocks, setStocks] = useState(() => {
-    const savedStocks = localStorage.getItem('equity_lens_stocks');
-    return savedStocks ? JSON.parse(savedStocks) : [];
+    try {
+      const savedStocks = localStorage.getItem('equity_lens_stocks');
+      return savedStocks ? JSON.parse(savedStocks) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [selectedStock, setSelectedStock] = useState(() => {
-    const savedSelected = localStorage.getItem('equity_lens_selected');
-    return savedSelected ? JSON.parse(savedSelected) : null;
+    try {
+      const savedSelected = localStorage.getItem('equity_lens_selected');
+      return savedSelected ? JSON.parse(savedSelected) : null;
+    } catch {
+      return null;
+    }
   });
 
   useEffect(() => {
@@ -28,6 +36,7 @@ export default function App() {
   }, [selectedStock]);
 
   const handleStockFetched = (newStockData) => {
+    // Nadpisujemy stan nowo pobranymi danymi z API
     setSelectedStock(newStockData);
   };
 
@@ -73,7 +82,7 @@ export default function App() {
         <h1 style={{ 
           fontSize: '24px', 
           fontWeight: 'bold', 
-          color: '#38bdf8', /* Nowy cyjanowy kolor logo/napisów */
+          color: '#38bdf8',
           margin: 0,
           marginRight: '16px'
         }}>
@@ -91,7 +100,7 @@ export default function App() {
               borderRadius: '6px',
               border: 'none',
               cursor: 'pointer',
-              backgroundColor: activeTab === 'single' ? '#0284c7' : 'transparent', /* Przycisk błękitny */
+              backgroundColor: activeTab === 'single' ? '#0284c7' : 'transparent',
               color: activeTab === 'single' ? '#fff' : '#94a3b8',
               fontWeight: 'bold',
               transition: 'background-color 0.2s'
@@ -109,7 +118,7 @@ export default function App() {
               borderRadius: '6px',
               border: 'none',
               cursor: 'pointer',
-              backgroundColor: activeTab === 'table' ? '#0284c7' : 'transparent', /* Przycisk błękitny */
+              backgroundColor: activeTab === 'table' ? '#0284c7' : 'transparent',
               color: activeTab === 'table' ? '#fff' : '#94a3b8',
               fontWeight: 'bold',
               transition: 'background-color 0.2s'
