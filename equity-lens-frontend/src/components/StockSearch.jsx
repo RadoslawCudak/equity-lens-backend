@@ -14,26 +14,31 @@ export default function StockSearch({ onStockFetched }) {
     setError(null);
 
     try {
-      // Pobieranie danych z Twojego API
-      const API_BASE_URL = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${API_BASE_URL}/get_stock_data?symbol=${ticker.toUpperCase()}`);
+      // Pobieranie bazy URL z env LUB użycie domyślnego adresu produkcyjnego jako fallback
+      const rawBaseUrl = import.meta.env.VITE_API_URL || 'https://func-equitylens-backend-prod-cph0efczgjdkbdaz.centralus-01.azurewebsites.net/api';
       
+      // Czyszczenie ewentualnego ukośnika na końcu (żeby nie powstało /api//get_stock_data)
+      const cleanBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+      const fullUrl = `${cleanBaseUrl}/get_stock_data?symbol=${ticker.trim().toUpperCase()}`;
+
+      const response = await fetch(fullUrl);
+
       if (!response.ok) {
-        throw new Error('Nie udało się pobrać danych dla podanego symbolu.');
+        throw new Error(`Błąd serwera: ${response.status}`);
       }
 
       const data = await response.json();
-      onStockFetched({ symbol: ticker.toUpperCase(), data });
-      setTicker('');
+      onStockFetched(data);
     } catch (err) {
-      setError(err.message || 'Wystąpił błąd podczas pobierania danych.');
+      console.error('Błąd podczas pobierania:', err);
+      setError('Nie udało się pobrać danych');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', width: '100%', maxWidth: '500px' }}>
+    <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%' }}>
       <div style={{ position: 'relative', flex: 1 }}>
         <input
           type="text"
@@ -42,19 +47,19 @@ export default function StockSearch({ onStockFetched }) {
           placeholder="Wpisz symbol (np. LPP.WA, CDR.WA)..."
           style={{
             width: '100%',
-            padding: '10px 14px 10px 38px',
-            borderRadius: '6px',
-            border: '1px solid #334155',
+            padding: '12px 16px 12px 42px',
+            borderRadius: '8px',
             backgroundColor: '#1e293b',
+            border: '1px solid #334155',
             color: '#f8fafc',
-            fontSize: '14px',
+            fontSize: '15px',
             outline: 'none',
             boxSizing: 'border-box'
           }}
         />
         <Search 
           size={18} 
-          style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
+          style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} 
         />
       </div>
 
@@ -62,25 +67,20 @@ export default function StockSearch({ onStockFetched }) {
         type="submit"
         disabled={loading}
         style={{
-          padding: '10px 20px',
-          borderRadius: '6px',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          backgroundColor: '#0284c7',
+          color: '#fff',
           border: 'none',
-          backgroundColor: loading ? '#334155' : '#0284c7', /* Nowy błękitny kolor */
-          color: '#ffffff',
           fontWeight: 'bold',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          transition: 'background-color 0.2s',
-          whiteSpace: 'nowrap'
+          cursor: loading ? 'wait' : 'pointer',
+          transition: 'background-color 0.2s'
         }}
       >
         {loading ? 'Pobieranie...' : 'Pobierz'}
       </button>
 
-      {error && (
-        <span style={{ color: '#ef4444', fontSize: '14px', alignSelf: 'center' }}>
-          {error}
-        </span>
-      )}
+      {error && <span style={{ color: '#ef4444', fontSize: '14px' }}>{error}</span>}
     </form>
   );
 }
