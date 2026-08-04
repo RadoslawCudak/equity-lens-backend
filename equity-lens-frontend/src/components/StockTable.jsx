@@ -1,228 +1,4 @@
-
-import { AgGridReact } from 'ag-grid-react';
-import { ModuleRegistry, ClientSideRowModelModule } from 'ag-grid-community';
-
-// CSS dla AG Grid i motywu ciemnego (To naprawia biały prostokąt!)
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-
-ModuleRegistry.registerModules([ClientSideRowModelModule]);
-
 export default function StockTable({ stocks, onRemoveFromTable }) {
-  const formatNumber = (value, decimals = 2) => {
-    if (value === undefined || value === null || isNaN(value)) return 'N/A';
-    return Number(value).toLocaleString('pl-PL', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    });
-  };
-
-  const columnDefs = [
-    { field: 'index', headerName: 'Indeks', sortable: true, filter: true, width: 110 },
-    { field: 'symbol', headerName: 'Ticker', sortable: true, filter: true, width: 120 },
-    { 
-      field: 'data.official_name', 
-      headerName: 'Pełna nazwa', 
-      sortable: true, 
-      filter: true,
-      valueGetter: params => params.data?.data?.official_name || params.data?.symbol || 'N/A',
-      width: 200
-    },
-    { 
-      field: 'data.currentPrice', 
-      headerName: 'Cena bieżąca', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 140
-    },
-    { 
-      field: 'data.previousClose', 
-      headerName: 'Cena zamkn.', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 140
-    },
-    { 
-      headerName: 'Różnica (%)', 
-      sortable: true,
-      filter: true,
-      width: 130,
-      valueGetter: params => {
-        const current = params.data?.data?.currentPrice;
-        const prev = params.data?.data?.previousClose;
-        if (!current || !prev) return null;
-        return ((current - prev) / prev) * 100;
-      },
-      valueFormatter: params => params.value !== null ? `${params.value > 0 ? '+' : ''}${formatNumber(params.value)}%` : 'N/A',
-      cellStyle: params => {
-        if (params.value > 0) return { color: '#34d399', fontWeight: 'bold' };
-        if (params.value < 0) return { color: '#f87171', fontWeight: 'bold' };
-        return null;
-      }
-    },
-    { 
-      field: 'data.trailingEps', 
-      headerName: 'EPS (Zysk/akcję)', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 160
-    },
-    { 
-      field: 'data.bookValue', 
-      headerName: 'Wartość księgowa/akcję', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 190
-    },
-    { 
-      field: 'data.enterpriseToEbitda', 
-      headerName: 'EV / EBITDA', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? formatNumber(params.value) : 'N/A',
-      width: 130
-    },
-    { 
-      field: 'data.ebitdaMargins', 
-      headerName: 'Marża EBITDA', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
-      width: 140
-    },
-    { 
-      field: 'data.returnOnAssets', 
-      headerName: 'ROA', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
-      width: 110
-    },
-    { 
-      field: 'data.returnOnEquity', 
-      headerName: 'ROE', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
-      width: 110
-    },
-    { 
-      field: 'data.debtToEquity', 
-      headerName: 'Dług / Kapitał', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)}%` : 'N/A',
-      width: 140
-    },
-    { 
-      field: 'data.sharesPercentSharesOut', 
-      headerName: 'Free Float (%)', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value * 100)}%` : 'N/A',
-      width: 140
-    },
-    { 
-      field: 'data.dividendRate', 
-      headerName: 'Dywidenda/akcję', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 160
-    },
-    { 
-      field: 'data.targetLowPrice', 
-      headerName: 'Target Min.', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 130
-    },
-    { 
-      field: 'data.targetMeanPrice', 
-      headerName: 'Target Śr.', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 130
-    },
-    { 
-      field: 'data.targetMedianPrice', 
-      headerName: 'Target Mediana', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 150
-    },
-    { 
-      field: 'data.targetHighPrice', 
-      headerName: 'Target Maks.', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? `${formatNumber(params.value)} PLN` : 'N/A',
-      width: 130
-    },
-    { 
-      field: 'data.volume', 
-      headerName: 'Wolumen', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? formatNumber(params.value, 0) : 'N/A',
-      width: 130
-    },
-    { 
-      field: 'data.averageDailyVolume10Day', 
-      headerName: 'Średnia 10d wolumenu', 
-      sortable: true, 
-      filter: true,
-      valueFormatter: params => params.value ? formatNumber(params.value, 0) : 'N/A',
-      width: 200
-    },
-    { 
-      headerName: '% vs 10d wolumenu', 
-      sortable: true,
-      filter: true,
-      width: 160,
-      valueGetter: params => {
-        const vol = params.data?.data?.volume;
-        const avgVol = params.data?.data?.averageDailyVolume10Day;
-        if (!vol || !avgVol) return null;
-        return (vol / avgVol) * 100;
-      },
-      valueFormatter: params => params.value !== null ? `${formatNumber(params.value, 0)}%` : 'N/A'
-    },
-    {
-  headerName: 'Akcje',
-  field: 'actions',
-  pinned: 'right',
-  width: 100,
-  /* Te dwa wiersze definiują tło bez względu na motyw AG Grid: */
-  headerStyle: { backgroundColor: '#0f172a', color: '#38bdf8' },
-  cellStyle: { backgroundColor: '#1e293b' },
-  cellRenderer: (params) => (
-    <button
-      onClick={() => onRemoveFromTable(params.data.symbol)}
-      style={{
-        padding: '4px 8px',
-        backgroundColor: '#ef4444',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        fontSize: '12px',
-        fontWeight: 'bold'
-      }}
-    >
-      Usuń
-    </button>
-  )
-}
-  ];
-
   if (!stocks || stocks.length === 0) {
     return (
       <div style={{
@@ -233,31 +9,99 @@ export default function StockTable({ stocks, onRemoveFromTable }) {
         color: '#94a3b8',
         border: '1px solid #334155'
       }}>
-        Brak spółek w zestawieniu. Wyszukaj i pobierz pierwsze spółki, aby wypełnić tabelę!
+        Tabela porównawcza jest pusta. Dodaj spółki z karty spółki, aby je tutaj zestawić.
       </div>
     );
   }
 
+  // Helper do bezpiecznego formatowania procentów
+  const formatPercent = (val) => {
+    if (val === undefined || val === null || isNaN(val)) return 'N/A';
+    return `${Number(val).toFixed(2)}%`;
+  };
+
   return (
-    <div 
-      className="ag-theme-alpine-dark" 
-      style={{ 
-        height: 'calc(100vh - 220px)', 
-        minHeight: '500px',
-        width: '100%', 
-        borderRadius: '8px', 
-        overflow: 'hidden',
-        border: '1px solid #334155'
-      }}
-    >
-      <AgGridReact
-        rowData={stocks}
-        columnDefs={columnDefs}
-        multiSortKey="ctrl"
-        animateRows={true}
-        pagination={true}
-        paginationPageSize={20}
-      />
+    <div style={{
+      backgroundColor: '#1e293b',
+      borderRadius: '12px',
+      border: '1px solid #334155',
+      overflowX: 'auto',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+    }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid #334155', backgroundColor: '#0f172a', color: '#38bdf8' }}>
+            <th style={{ padding: '16px' }}>Symbol</th>
+            <th style={{ padding: '16px' }}>Nazwa / Sektor</th>
+            <th style={{ padding: '16px' }}>Indeks</th>
+            <th style={{ padding: '16px' }}>Cena bieżąca</th>
+            <th style={{ padding: '16px' }}>P/E (C/Z)</th>
+            <th style={{ padding: '16px' }}>P/B (C/WK)</th>
+            <th style={{ padding: '16px' }}>Stopa Dywidendy</th>
+            <th style={{ padding: '16px' }}>Kapitalizacja</th>
+            <th style={{ padding: '16px', textAlign: 'center' }}>Akcje</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stocks.map((stock, idx) => {
+            const dataPayload = stock.data || {};
+            const info = { ...stock, ...dataPayload };
+            const currentPrice = info.currentPrice ?? info.regularMarketPrice ?? info.previousClose ?? info.open;
+
+            return (
+              <tr key={stock.symbol || idx} style={{ borderBottom: '1px solid #334155' }}>
+                <td style={{ padding: '16px', fontWeight: 'bold', color: '#f8fafc' }}>
+                  {info.symbol}
+                </td>
+                <td style={{ padding: '16px' }}>
+                  <div style={{ color: '#f8fafc', fontWeight: '500' }}>
+                    {info.official_name || info.longName || info.symbol}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                    {info.sector || 'N/A'}
+                  </div>
+                </td>
+                <td style={{ padding: '16px', color: '#94a3b8' }}>
+                  {info.index || info.gpw_index || 'GPW'}
+                </td>
+                <td style={{ padding: '16px', fontWeight: 'bold', color: '#38bdf8' }}>
+                  {currentPrice ? `${currentPrice} PLN` : 'N/A'}
+                </td>
+                <td style={{ padding: '16px', color: '#f8fafc' }}>
+                  {info.trailingPE ? Number(info.trailingPE).toFixed(2) : 'N/A'}
+                </td>
+                <td style={{ padding: '16px', color: '#f8fafc' }}>
+                  {info.priceToBook ? Number(info.priceToBook).toFixed(2) : 'N/A'}
+                </td>
+                <td style={{ padding: '16px', color: '#f8fafc' }}>
+                  {formatPercent(info.dividendYield)}
+                </td>
+                <td style={{ padding: '16px', color: '#f8fafc' }}>
+                  {info.marketCap ? `${(Number(info.marketCap) / 1e9).toFixed(2)} mld PLN` : 'N/A'}
+                </td>
+                <td style={{ padding: '16px', textAlign: 'center' }}>
+                  <button
+                    onClick={() => onRemoveFromTable(stock.symbol)}
+                    style={{
+                      backgroundColor: '#ef4444',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    Usuń
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
